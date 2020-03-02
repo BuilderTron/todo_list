@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.db  import IntegrityError
+from .forms import TodoForm
 
 
 def home(request):
@@ -24,7 +25,7 @@ def signupuser(request):
                 return render(request, 'todo/signupuser.html', {'form':UserCreationForm(), 'error':'That username has been taken, please use a different username.'})
 
         else:
-            return render(request, 'todo/signupuser.html', {'form':UserCreationForm(), 'error':'Passwords did not match.'})
+            return render(request, 'todo/signupuser.html', {'form':UserCreationForm(), 'error':'Passwords did not match. Try again.'})
 
 def loginuser(request):
     if request.method == 'GET':
@@ -50,3 +51,18 @@ def logoutuser(request):
 
 def currenttodos(request):
     return render(request, 'todo/currenttodos.html')
+
+
+def createtodo(request):
+    if request.method == 'GET':
+        return render(request, 'todo/createtodo.html', {'form':TodoForm()})
+
+    else:
+        try:
+            form = TodoForm(request.POST)
+            newtodo = form.save(commit=False)
+            newtodo.user = request.user
+            newtodo.save()
+            return redirect('currenttodos')
+        except ValueError:
+            return render(request, 'todo/createtodo.html', {'form':TodoForm(), 'error':'Bad data passed in.'})
